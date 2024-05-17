@@ -33,7 +33,7 @@ const conversation = new Conversation(
                 ),
                 new GuideElement(
                     new Or(["nein", "ne", "nö"]),
-                    "Okay dann auf Wiedersehen."
+                    "Okay."
                 ),
             ]
         ),
