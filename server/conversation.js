@@ -68,9 +68,9 @@ class Conversation {
                 } else {
                     this._ended = true;
                     if (guideElement.anwser) {
-                        return guideElement.anwser + " " + conversation.end;
+                        return guideElement.anwser + " " + this._endPhrase;
                     } else {
-                        return conversation.end;
+                        return this._endPhrase;
                     }
 
                 }

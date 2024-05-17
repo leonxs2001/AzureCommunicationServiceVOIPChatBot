@@ -1,23 +1,17 @@
-const { CallAutomationClient } = require("@azure/communication-call-automation");
-const express = require('express');
 const dotenv = require('dotenv');
-const conversation = require("./conversation-config");
-
 dotenv.config();
+
+const express = require('express');
+
+const conversation = require("./conversation-config");
+const { CustomCall } = require("./call")
 
 const resourceConnectionString = process.env.RESOURCE_CONNECTION_STRING;
 const userId = process.env.USER_ID;
 const callbackUri = process.env.CALLBACK_URI;
 const cognitiveServicesEndpoint = process.env.COGNITIVE_SERVICE_ENDPOINT;
 
-const callInvite = {
-    targetParticipant: {
-        communicationUserId: userId
-    }
-}
-
-let client;
-let callResult;
+const call = new CustomCall(userId, callbackUri, cognitiveServicesEndpoint);
 
 const app = express();
 
@@ -27,23 +21,23 @@ app.post('/events', (req, res) => {
     for (let event of req.body) {
         if (event.type == "Microsoft.Communication.CallConnected") {
             console.log(`ChatBot: ${conversation.initalPhrase}`);
-            ask(conversation.initalPhrase);
+            call.startRecognizing(conversation.initalPhrase);
         } else if (event.type == "Microsoft.Communication.RecognizeCompleted") {
             let speechText = event.data.speechResult.speech;
             console.log(`Du: ${speechText}`);
             let anwser = conversation.anwser(speechText);
             console.log(`ChatBot: ${anwser}`);
             if (conversation.ended) {
-                talk(anwser);
+                call.playText(anwser);
             } else {
-                ask(anwser);
+                call.startRecognizing(anwser);
             }
         } else if (event.type == "Microsoft.Communication.RecognizeFailed") {
             console.log(`ChatBot: ${conversation.notRecognizablePhrase}`);
-            ask(conversation.notRecognizablePhrase);
+            call.startRecognizing(conversation.notRecognizablePhrase);
         } else if (event.type == "Microsoft.Communication.PlayCompleted") {
             if (conversation.ended) {
-                callResult.callConnection.hangUp(true);
+                call.endCall(true);
             }
         }
     }
@@ -53,41 +47,6 @@ app.post('/events', (req, res) => {
 
 const port = 3000;
 app.listen(port, () => {
-    console.log("Webserver started!");
-    callUser();
+    console.log("Webserver started!\n");
+    call.startCall();
 });
-
-async function callUser() {
-    client = new CallAutomationClient(resourceConnectionString);
-
-    const createCallOptions = {
-        callIntelligenceOptions: {
-            cognitiveServicesEndpoint: cognitiveServicesEndpoint,
-        }
-    };
-
-    callResult = await client.createCall(callInvite, callbackUri, createCallOptions);
-
-}
-
-async function ask(openQuestion) {
-    const callMedia = callResult.callConnection.getCallMedia();
-    const playSource = { text: openQuestion, voiceName: "de-DE-ChristophNeural", kind: "textSource" };
-    const recognizeOptions = {
-        endSilenceTimeoutInSeconds: 1,
-        initialSilenceTimeoutInSeconds: 10,
-        playPrompt: playSource,
-        operationContext: "OpenQuestionSpeech",
-        kind: "callMediaRecognizeSpeechOptions",
-        speechLanguage: "de-DE"
-    };
-
-    await callMedia.startRecognizing(callInvite.targetParticipant, recognizeOptions);
-}
-
-async function talk(text) {
-    const callMedia = callResult.callConnection.getCallMedia();
-    const playSource = { text: text, voiceName: "de-DE-ChristophNeural", kind: "textSource" };
-    await callMedia.playToAll([playSource,]);
-}
-
