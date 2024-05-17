@@ -1,0 +1,6 @@
+dist/
+.parcel-cache/
+.idea/
+node_modules/
+credentials.txt
+.env
