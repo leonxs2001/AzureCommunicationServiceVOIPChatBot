@@ -13,15 +13,15 @@ class ChatBot {
 
         this._app.use(express.json());
 
-        this._app.post('/api/events/:communicationUserId', (req, res) => this._handleEvents(req, res));
-        this._app.post('/api/user', async (req, res) => await this._createUser(req, res));
-        this._app.post('/api/call/:communicationUserId', async (req, res) => await this._createCall(req, res));
+        this._app.post('/api/events/:communicationUserId', (req, res) => this._handleEventsController(req, res));
+        this._app.post('/api/user', async (req, res) => await this._createUserController(req, res));
+        this._app.post('/api/call/:communicationUserId', async (req, res) => await this._createCallController(req, res));
 
 
         this._identityClient = new CommunicationIdentityClient(process.env.RESOURCE_CONNECTION_STRING);
     }
 
-    _handleEvents(req, res) {
+    _handleEventsController(req, res) {
         
         const communicationUserId = req.params.communicationUserId;
         let call = this._calls[communicationUserId];
@@ -42,17 +42,17 @@ class ChatBot {
                 } else if (event.type == "Microsoft.Communication.PlayCompleted") {
                     if (conversation.ended) {
                         call.endCall(true);
-                        delete this._calls[communicationUserId];
+                        this._deleteUser(communicationUserId);
                     }
                 } else if (event.type == "Microsoft.Communication.CallDisconnected") {
-                    delete this._calls[communicationUserId];//TODO delete identity
+                    this._deleteUser(communicationUserId);
                 }
             }
         }
         res.send();
     }
 
-    async _createUser(req, res) {
+    async _createUserController(req, res) {
         const { token, expiresOn, user } = await this._identityClient.createUserAndToken(["voip"]);;
         res.json({
             token: token,
@@ -74,16 +74,16 @@ class ChatBot {
         });
     }
 
-    async _createCall(req, res) {
+    async _createCallController(req, res) {
         const communicationUserId = req.params.communicationUserId;
         if (communicationUserId) {
-            await this.createCall(communicationUserId);
+            await this._createCall(communicationUserId);
         }
 
         res.send();
     }
 
-    async createCall(communicationUserId) {
+    async _createCall(communicationUserId) {
         let callbackUri = process.env.CALLBACK_URI;
         if (callbackUri.charAt(callbackUri.length - 1) == "/") {
             callbackUri += communicationUserId;
@@ -94,6 +94,13 @@ class ChatBot {
         const call = new CustomCall(communicationUserId, callbackUri, cognitiveServicesEndpoint);
         this._calls[communicationUserId] = call;
         await call.startCall();
+    }
+
+    _deleteUser(communicationUserId){
+        delete this._calls[communicationUserId];
+        this._identityClient.deleteUser({
+            communicationUserId: communicationUserId
+        });
     }
 }
 
