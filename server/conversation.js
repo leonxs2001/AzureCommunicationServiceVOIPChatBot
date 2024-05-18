@@ -42,7 +42,7 @@ class Not {
     constructor(notAttribute) {
         this.notAttribute = notAttribute;
     }
-
+     
     check(text) {
         return !check(text, this.notAttribute);
     }

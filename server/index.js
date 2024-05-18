@@ -3,6 +3,4 @@ dotenv.config();
 
 const chatBot = require("./chatbot");
 
-chatBot.start().then(() => {
-    chatBot.createCall();
-});
+chatBot.start();
