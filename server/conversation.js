@@ -59,6 +59,10 @@ class Conversation {
         this._ended = false;
     }
 
+    clone(){
+        return new Conversation(this._guide, this._initialPhrase, this._notUndestandablePhrase, this._notRecognizablePhrase, this._endPhrase);
+    }
+
     anwser(question) {
         for (let guideElement of this._guide) {
             if (check(question, guideElement.question)) {

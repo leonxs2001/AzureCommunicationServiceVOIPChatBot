@@ -6,7 +6,8 @@ const VOICE_NAME = "de-DE-ChristophNeural";
 class CustomCall {
     static _callAutomationClient = new CallAutomationClient(process.env.RESOURCE_CONNECTION_STRING);
 
-    constructor(communicationUserId, callbackUri, cognitiveServicesEndpoint, voiceLanguage, voiceName) {
+    constructor(conversation, communicationUserId, callbackUri, cognitiveServicesEndpoint, voiceLanguage, voiceName) {
+        this._conversation = conversation;
         this._communicationUserId = communicationUserId;
         this._callInvite = {
             targetParticipant: {
@@ -57,6 +58,10 @@ class CustomCall {
         };
 
         await callMedia.startRecognizing(this._callInvite.targetParticipant, recognizeOptions);
+    }
+
+    get conversation(){
+        return this._conversation;
     }
 }
 

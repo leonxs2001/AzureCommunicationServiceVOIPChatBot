@@ -26,22 +26,24 @@ class ChatBot {
         const communicationUserId = req.params.communicationUserId;
         let call = this._calls[communicationUserId];
         if (call) {
+            const callConversation = call.conversation;
+            console.log(callConversation);
             for (let event of req.body) {
                 if (event.type == "Microsoft.Communication.CallConnected") {
-                    call.startRecognizing(conversation.initalPhrase);
+                    call.startRecognizing(callConversation.initalPhrase);
                 } else if (event.type == "Microsoft.Communication.RecognizeCompleted") {
                     let speechText = event.data.speechResult.speech;
-                    let anwser = conversation.anwser(speechText);
-                    if (conversation.ended) {
+                    let anwser = callConversation.anwser(speechText);
+                    if (callConversation.ended) {
                         call.playText(anwser);
                     } else {
                         call.startRecognizing(anwser);
                     }
                 } else if (event.type == "Microsoft.Communication.RecognizeFailed") {
-                    call.startRecognizing(conversation.notRecognizablePhrase);
+                    call.startRecognizing(callConversation.notRecognizablePhrase);
                 } else if (event.type == "Microsoft.Communication.PlayCompleted") {
-                    if (conversation.ended) {
-                        call.endCall(true);
+                    if (callConversation.ended) {
+                        call.endCall();
                         this._deleteUser(communicationUserId);
                     }
                 } else if (event.type == "Microsoft.Communication.CallDisconnected") {
@@ -91,7 +93,7 @@ class ChatBot {
             callbackUri += `/${communicationUserId}`
         }
         const cognitiveServicesEndpoint = process.env.COGNITIVE_SERVICE_ENDPOINT;
-        const call = new CustomCall(communicationUserId, callbackUri, cognitiveServicesEndpoint);
+        const call = new CustomCall(conversation.clone(), communicationUserId, callbackUri, cognitiveServicesEndpoint);
         this._calls[communicationUserId] = call;
         await call.startCall();
     }

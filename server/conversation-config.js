@@ -23,7 +23,7 @@ const conversation = new Conversation(
                         ),
                         new GuideElement(
                             "krass",
-                            "Den krassen also. Das kostet Sie dann 50 Euro im Monat.",
+                            "Den krassen also. Das kostet Sie dann 70 Euro im Monat.",
                         ),
                         new GuideElement(
                             new Or(["mittel", "mittleren"]),
