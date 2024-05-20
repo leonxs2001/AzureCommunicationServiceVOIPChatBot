@@ -1,5 +1,8 @@
 const { GuideElement, And, Or, Not, Conversation } = require("./conversation");
-
+const noEndGuideElement = new GuideElement(
+    new Or(["nein", "ne", "nö"]),
+    "Okay."
+);
 const conversation = new Conversation(
     [
         new GuideElement(
@@ -31,14 +34,34 @@ const conversation = new Conversation(
                         ),
                     ]
                 ),
-                new GuideElement(
-                    new Or(["nein", "ne", "nö"]),
-                    "Okay."
-                ),
+                noEndGuideElement,
             ]
         ),
+        new GuideElement(
+            new Or([
+                "Vertrag", "Tarif", "Flat"
+            ]),
+            "Sie wollen also über einen bestehenden Vertrag bei uns reden? Ist das richtig?",
+            [
+                new GuideElement(
+                    new Or(["ja", "genau", "stimmt", "richtig"]),
+                    "Womit kann ich Ihnen denn dabei helfen? Wollen Sie einen besseren Tarif oder haben Sie Probleme mit dem Tarif den Sie zur Zeit verwenden?",
+                    [
+                        new GuideElement(
+                            "besser",
+                            "Da haben Sie leider Pech, da Sie schon den krassesten haben.",
+                        ),
+                        new GuideElement(
+                            "Problem",
+                            "Ihre Probleme sind uns aber egal.",
+                        ),
+                    ]
+                ),
+                noEndGuideElement
+            ]
+        )
     ],
-    "Willkommen beim Vertragsservice des 2 und 2. Wie kann ich Ihnen helfen?",
+    "Willkommen beim Vertragsservice des 2 und 2. Wie kann ich Ihnen helfen? Wollen Sie einen neuen Vertrag abschließen oder über einen bestehenden Vertrag sprechen?",
     "Das habe ich leider nicht verstanden. Kannst du bitte nocheinmal formulieren?",
     "Ich habe leider nichts gehört. Bitte versuche laut und deutlich zu sprechen.",
     "Auf Wiedersehen."
