@@ -27,7 +27,6 @@ class ChatBot {
         let call = this._calls[communicationUserId];
         if (call) {
             const callConversation = call.conversation;
-            console.log(callConversation);
             for (let event of req.body) {
                 if (event.type == "Microsoft.Communication.CallConnected") {
                     call.startRecognizing(callConversation.initalPhrase);

@@ -1,10 +1,32 @@
 const conversation = require("./conversation-config");
 
+const InpuType = Object.freeze({
+    NUMBER: "NUMBER",
+    SEPERATED_NUMBER: "SEPERATED_NUMBER",
+    STRING: "STRING",
+    SEPERATED_STRING: "SEPERATED_STRING",
+});
+
 class GuideElement {
     constructor(question, anwser, nextGuideElements) {
         this.question = question;
         this.anwser = anwser;
-        this.nextGuideElements = nextGuideElements;//TODO rename
+        this.nextGuideElements = nextGuideElements;
+    }
+}
+
+class GuideElementInput {
+    constructor(variableName, inputType, validatorFunction = (value) => true, confirmQuestion, confirmAnwser, denyAnwser, tryAgainQuestion, nextQuestion, nextGuideElements) {
+        this.variableName = variableName;
+        this.nextGuideElements = nextGuideElements;
+        this.confirmQuestion = confirmQuestion;
+        this.tryAgainQuestion = tryAgainQuestion
+        this.confirmAnwser = confirmAnwser;
+        this.denyAnwser = denyAnwser;
+        this.nextQuestion = nextQuestion;
+        this.inputType = inputType;
+        this.confirmationRequested = false;
+        this.validatorFunction = validatorFunction;
     }
 }
 
@@ -42,14 +64,14 @@ class Not {
     constructor(notAttribute) {
         this.notAttribute = notAttribute;
     }
-     
+
     check(text) {
         return !check(text, this.notAttribute);
     }
 }
 
 class Conversation {
-    constructor(guide, initialPhrase = "", notUndestandablePhrase = "", notRecognizablePhrase = "", endPhrase = "") {
+    constructor(guide, initialPhrase = "", notUndestandablePhrase = "", notRecognizablePhrase = "", endPhrase = "", finishedConversationHandle = (vars) => { console.log("nö") }, maxNotUnderstandableCounts = 2) {
         this._initialPhrase = initialPhrase;
         this._guide = guide;
 
@@ -57,31 +79,103 @@ class Conversation {
         this._notRecognizablePhrase = notRecognizablePhrase;
         this._endPhrase = endPhrase;
         this._ended = false;
+        this._vars = {}
+        this._notUnderstandableCounter = 0;
+        this._maxNotUnderstandableCounts = maxNotUnderstandableCounts;
+        this._lastQuestion = initialPhrase;
+        this._finishedConversationHandle = finishedConversationHandle;
     }
 
-    clone(){
-        return new Conversation(this._guide, this._initialPhrase, this._notUndestandablePhrase, this._notRecognizablePhrase, this._endPhrase);
+    clone() {
+        return new Conversation(this._guide, this._initialPhrase, this._notUndestandablePhrase, this._notRecognizablePhrase, this._endPhrase, this._finishedConversationHandle, this._maxNotUnderstandableCounts);
+    }
+
+    _endConversation() {
+        this._ended = true;
+        this._finishedConversationHandle(this._vars);
     }
 
     anwser(question) {
-        for (let guideElement of this._guide) {
-            if (check(question, guideElement.question)) {
-                if (guideElement.nextGuideElements) {
-                    this._guide = guideElement.nextGuideElements;
-                    return guideElement.anwser;
-                } else {
-                    this._ended = true;
-                    if (guideElement.anwser) {
-                        return guideElement.anwser + " " + this._endPhrase;
+        if (this._guide instanceof GuideElementInput) {
+            if (!this._guide.confirmationRequested) {
+                let result = question.trim();
+                if (".!?".includes(result[result.length - 1])) {
+                    result = result.slice(0, -1);
+                }
+                if (this._guide.inputType != InpuType.STRING && this._guide.inputType != InpuType.SEPERATED_STRING) {
+                    if (this._guide.inputType == InpuType.NUMBER) {
+                        result = result.replace(/,/, '.');
+                        result = Number(result);
                     } else {
-                        return this._endPhrase;
+                        result = Number.parseInt(result);
                     }
 
+                } else {
+                    result = result.replace(/[^\w\säöüß]/gi, "");
+                }
+
+                if (result && this._guide.validatorFunction(result)) {
+                    this._vars[this._guide.variableName] = result;
+                    this._guide.confirmationRequested = true;
+                    if (this._guide.inputType == InpuType.SEPERATED_NUMBER || this._guide.inputType == InpuType.SEPERATED_STRING) {
+                        result = `${result}`.split("").join(" ");
+                    } else if (this._guide.inputType == InpuType.NUMBER) {
+                        result = `${result}`.replace(/\./, ",");
+                    }
+                    this._lastQuestion = `${this._guide.confirmQuestion} ${result}`;
+                    return this._lastQuestion;
+                } else {
+                    return this._guide.tryAgainQuestion;
+                }
+            } else {
+                if (check(question, this._guide.confirmAnwser)) {
+                    this._notUnderstandableCounter = 0;
+                    if (this._guide.nextGuideElements) {
+                        let nextQuestion = this._guide.nextQuestion;
+                        this._guide = this._guide.nextGuideElements;
+                        this._lastQuestion = nextQuestion;
+                        return nextQuestion;
+                    } else {
+                        this._endConversation();
+                        return `${this._guide.nextQuestion} ${this._endPhrase}`;
+                    }
+                } else if (check(question, this._guide.denyAnwser)) {
+                    this._notUnderstandableCounter = 0;
+                    this._guide.confirmationRequested = false;
+                    this._lastQuestion = this._guide.tryAgainQuestion;
+                    return this._guide.tryAgainQuestion;
+                }
+            }
+        } else {
+            for (let guideElement of this._guide) {
+                if (check(question, guideElement.question)) {
+                    if (guideElement.nextGuideElements) {
+                        this._guide = guideElement.nextGuideElements;
+                        this._notUnderstandableCounter = 0;
+                        this._lastQuestion = guideElement.anwser;
+                        return guideElement.anwser;
+                    } else {
+                        this._endConversation();
+                        if (guideElement.anwser) {
+                            return `${guideElement.anwser} ${this._endPhrase}`;
+                        } else {
+                            return this._endPhrase;
+                        }
+
+                    }
                 }
             }
         }
 
-        return this.notUndestandablePhrase;
+        this._notUnderstandableCounter++;
+        if (this._notUnderstandableCounter >= this._maxNotUnderstandableCounts) {
+            this._notUnderstandableCounter = 0;
+            return this._lastQuestion;
+        } else {
+            return this.notUndestandablePhrase;
+        }
+
+
     }
 
     get initalPhrase() {
@@ -116,4 +210,4 @@ function check(text, object) {
 
 }
 
-module.exports = { GuideElement, And, Or, Not, Conversation }
+module.exports = { GuideElement, GuideElementInput, And, Or, Not, Conversation, InpuType }
