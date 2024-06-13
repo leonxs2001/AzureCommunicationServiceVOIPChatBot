@@ -3,30 +3,14 @@ import { AzureCommunicationTokenCredential } from '@azure/communication-common';
 
 const createCall = document.getElementById("create-call");
 
-//const audioInputSelect = document.getElementById("audio-input-select");
-
 const hangUpButton = document.getElementById("hang-up-button");
 
 const loader = document.getElementById("loader");
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    /*navigator.mediaDevices.enumerateDevices()
-        .then(devices => {
-            const audioInputs = devices.filter(device => device.kind === 'audioinput');
-            audioInputs.forEach(device => {
-                console.log(device);
-                const option = document.createElement('option');
-                option.value = device.deviceId;
-                option.text = device.label || 'Unbekanntes Gerät';
-                audioInputSelect.appendChild(option);
-            });
-            createCall.disabled = false;
-            audioInputSelect.disabled = false;
-        });*/
     loader.style.display = "none";
     createCall.disabled = false;
-    //audioInputSelect.disabled = false;
 });
 
 let call;
@@ -40,9 +24,9 @@ createCall.addEventListener("click", async () => {
     try {
 
         let response = await fetch(`${URI}user`, {
-            method: 'POST', // Verwendung der POST-Methode
+            method: 'POST', 
             headers: {
-                'Content-Type': 'application/json', // Setzen des Content-Type-Headers auf JSON
+                'Content-Type': 'application/json', 
             },
         });
         if (!response.ok) {
@@ -81,30 +65,16 @@ createCall.addEventListener("click", async () => {
 });
 
 hangUpButton.addEventListener("click", () => {
-    // end the current call
+
     call.hangUp({ forEveryone: true });
-    // toggle button states
+    
     hangUpButton.disabled = true;
     createCall.disabled = false;
-    //audioInputSelect.disabled = false;
 });
 
 const incomingCallHandler = async (args) => {
     loader.style.display = "none";
-    //audioInputSelect.disabled = true;
     let incomingCall = args.incomingCall;
-
-    /*const constraints = {
-        audio: true
-    };
-
-    const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-
-    const acceptCallOptions = {
-        audioOptions: {
-            localAudioStreams: [new LocalAudioStream(mediaStream)]
-        }
-    }*/
 
     call = await incomingCall.accept();
     hangUpButton.disabled = false;
@@ -117,7 +87,6 @@ const incomingCallHandler = async (args) => {
             console.log(args.callEndReason);
             hangUpButton.disabled = true;
             createCall.disabled = false;
-            //audioInputSelect.disabled = false;
         }
     });
 };

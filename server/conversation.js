@@ -71,7 +71,7 @@ class Not {
 }
 
 class Conversation {
-    constructor(guide, initialPhrase = "", notUndestandablePhrase = "", notRecognizablePhrase = "", endPhrase = "", finishedConversationHandle = (vars) => { console.log("nö") }, maxNotUnderstandableCounts = 2) {
+    constructor(guide, initialPhrase = "", notUndestandablePhrase = "", notRecognizablePhrase = "", endPhrase = "", finishedConversationHandle = (vars) => { }, maxNotUnderstandableCounts = 2) {
         this._initialPhrase = initialPhrase;
         this._guide = guide;
 
