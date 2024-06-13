@@ -22,7 +22,6 @@ class ChatBot {
     }
 
     _handleEventsController(req, res) {
-        
         const communicationUserId = req.params.communicationUserId;
         let call = this._calls[communicationUserId];
         if (call) {
