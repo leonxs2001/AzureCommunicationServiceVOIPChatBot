@@ -1,9 +1,13 @@
 const { GuideElement, GuideElementInput, And, Or, Not, Conversation, InpuType } = require("./conversation");
+const fs = require("fs");
 
+const FILE_NAME = "data.csv"
 const noEndGuideElement = new GuideElement(
     new Or(["nein", "ne", "nö"]),
     "Okay."
 );
+
+
 const conversation = new Conversation(
     [
         new GuideElement(
@@ -104,11 +108,28 @@ const conversation = new Conversation(
     "Ich habe leider nichts gehört. Bitte versuche laut und deutlich zu sprechen.",
     "Auf Wiedersehen.",
     (vars) => {
-        console.log("\nDas sind die angegeben Daten:");
-        for (let key in vars) {
-            console.log(`${key}: ${vars[key]}`)
-        }
-        console.log("Wird gespeichert..\n");
+        writeVarsToCSV(vars, FILE_NAME);
+        
     }
 )
 module.exports = conversation;
+
+function writeVarsToCSV(vars, csvFilePath) {
+    console.log("\nDas sind die angegeben Daten:");
+    let dataList = [];
+    for (let key in vars) {
+        dataList.push(vars[key]);
+        console.log(`${key}: ${vars[key]}`)
+    }
+    console.log("Wird gespeichert..\n");
+    const csvData = dataList.join(';') + '\n';
+
+    fs.appendFile(csvFilePath, csvData, (err) => {
+        if (err) {
+            console.error('Error during saving data', err);
+        } else {
+            console.log('Saved data' + csvData);
+        }
+    });
+
+}
