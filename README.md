@@ -1,49 +1,51 @@
-# Cloudbasierter VoiceBot
+# Cloud-based VoiceBot
 
-Dieses Projekt ist ein cloudbasierter VoiceBot, der im Rahmen eines Studiums an der Technischen Hochschule Brandenburg entwickelt wurde. Es nutzt Azure-Dienste für die Sprachverarbeitung und Kommunikation.
+This project is a cloud-based VoiceBot developed as part of a study program at the Technical University of Brandenburg. It utilizes Azure services for speech processing and communication.
 
-## Überblick
+## Overview
 
-Der VoiceBot besteht aus einem Frontend und einem Backend, die über HTTPS kommunizieren (HTTPS ist zwingend nötig!). Er verwendet Azure Communication Services und Cognitive Services für die Sprachverarbeitung und Anrufsteuerung.
+The VoiceBot consists of a frontend and a backend that communicate via HTTPS (HTTPS is mandatory!). It uses Azure Communication Services and Cognitive Services for speech processing and call control.
 
-### Architektur
+### Architecture
 
-- Frontend: Webbasierte Benutzeroberfläche
-- Backend: Node.js mit Express.js
-- Azure-Dienste: Communication Services, Cognitive Services
+- Frontend: Web-based user interface
+- Backend: Node.js with Express.js
+- Azure Services: Communication Services, Cognitive Services
 
-## Technische Details
+![image](https://github.com/user-attachments/assets/284fd9c1-359e-4eb8-8ff1-521a16ee5e24)
+
+## Technical Details
 
 ### Frontend
 
-- Implementiert mit JavaScript
-- Erstellt Benutzer und Anrufe über API-Aufrufe zum Backend
+- Implemented with JavaScript
+- Creates users and calls through API requests to the backend
 
 ### Backend
 
-Das Backend ist in drei Hauptkomponenten aufgeteilt:
+The backend is divided into three main components:
 
 1. **Call**
-   - Speichert die Konversation
-   - Startet den Anruf (CallAutomationClient)
-   - Steuert die Sprachausgabe
-   - Initiiert die Spracherkennung
+   - Stores the conversation
+   - Initiates the call (CallAutomationClient)
+   - Controls speech output
+   - Initiates speech recognition
 
 2. **Conversation**
-   - Verwaltet den Gesprächsablauf
-   - Beinhaltet Begrüßung, Standardtexte und Verabschiedung
-   - Implementiert einen Guide-Mechanismus für strukturierte Gespräche
+   - Manages the conversation flow
+   - Includes greeting, standard texts, and farewell
+   - Implements a guide mechanism for structured conversations
 
 3. **ChatBot**
-   - Fungiert als Webserver
-   - Erstellt Benutzer und Anrufe
-   - Verarbeitet WebHooks
-   - Implementiert Event-Handler für verschiedene Anrufzustände
+   - Acts as a web server
+   - Creates users and calls
+   - Processes WebHooks
+   - Implements event handlers for various call states
 
-## Konfiguration
+## Configuration
 
-- Virtuelle Maschine mit HTTPS-Webserver
-- Backend: Node.js und Express.js
-- Frontend: Gebündelt mit Parcel
-- Reverse Proxy: z.B. Nginx
-- Integration mit Azure Communication Services und Cognitive Services
+- Virtual machine with HTTPS web server
+- Backend: Node.js and Express.js
+- Frontend: Bundled with Parcel
+- Reverse Proxy: e.g., Nginx
+- Integration with Azure Communication Services and Cognitive Services
